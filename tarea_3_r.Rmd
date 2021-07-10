@@ -13,7 +13,7 @@ Estudiante:Carlos Daniel Oxom Coy
 
 
 ```{r}
-
+library(dplyr) #agregando librería dplyr
 dataset_results <- read.csv("primary_results.csv")
 
 #1. Filtrar todos los votos del estado de Florida
