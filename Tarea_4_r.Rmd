@@ -1,0 +1,97 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Tarea No. 4 
+Carlos Daniel Oxom Coy
+
+Descripción
+Se le ha compartido el archivo diamonds.csv que es una colección de datos de diamantes con
+detalles de 1000 diamantes. Entre las variables incluidas están el quilate (carat) y el precio
+(price).
+Construya la variable diamonds que contenga la lectura del CSV, luego explore el data frame con
+la función str( ).
+Agregando geometrías: Para cada geometría utilice el data frame diamonds.
+
+1. Dispersión
+
+```{r}
+
+library(tidyverse)
+library(ggplot2)
+diamonds <- read.csv("diamonds.csv")
+
+#creando df diamonds, a partir de lectura. 
+str(diamonds)
+
+#incisos 1.1 al 3 
+ggplot(diamonds)+
+  geom_point(aes(carat, price))
+
+ggplot(diamonds)+
+  geom_point(aes(carat,price,color=clarity))
+
+```
+2. Histograma
+```{r}
+str(diamonds)
+
+
+ggplot(diamonds, aes(x=price))+
+  geom_histogram(bins=40)
+
+#agregando escala logaritmica
+
+ggplot(diamonds, aes(x=price))+
+  geom_histogram(bins=40)+
+  scale_x_log10()
+
+```
+
+3. Boxplot
+
+```{r}
+ggplot(diamonds)+
+  aes(x=cut,y=price, fill =cut)+
+  geom_boxplot()+
+  scale_y_log10()
+```
+4. Faceting
+```{r}
+
+filtered_price <- filter(diamonds,price>1000 & (cut == "Good" | cut == "Ideal" | cut =="Premium"))
+
+ggplot(filtered_price)+
+  aes(x=cut, y = depth)+
+  geom_col()+
+  facet_wrap(~clarity)
+
+ggplot(filtered_price)+
+  aes(x=cut, y = depth, fill= clarity)+
+  geom_col()+
+  facet_wrap(~clarity)
+
+```
+5. Grouping and Summarizing
+```{r}
+median_dimension_diamond <- diamonds %>%
+  group_by(cut)%>%
+  summarise(mediaX=mean(x), mediaY=mean(y), mediaZ=mean(z))
+
+cut_premium <- filter(diamonds, cut == "Premium")%>%
+  group_by(clarity)%>%
+  summarise(minPrice = min(price), maxPrice= max(price))
+
+median_dimension_diamond
+cut_premium
+```
+
+
+```{r}
+ggplot(cut_premium)+
+  aes(x=clarity,y=maxPrice, fill= clarity)+
+  geom_col()
+
+```
+
