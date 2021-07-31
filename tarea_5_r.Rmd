@@ -1,0 +1,106 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Carlos Daniel Oxom Coy
+#Tarea 5
+
+
+Descripción
+Se le han compartido cuatro de los conjuntos de datos más comunes que utiliza la plataforma
+Stack Overflow (comunidad en línea más grande de desarrolladores).
+● questions.csv: Posee un identificador de pregunta, la puntuación de la pregunta en
+función de cuántas veces se ha votado a favor de la misma; los datos solo incluyen
+preguntas basadas en R.
+● answers.csv: Posee un identificador de respuesta, la puntuación y un ID que relaciona la
+respuesta con una pregunta específica.
+● tags.csv: Posee un identificador de etiqueta y el nombre de la etiqueta, que se pueden
+utilizar para identificar el tema de cada pregunta, como ggplot2 o dplyr.
+● question_tags.csv: Posee un identificador de etiqueta para cada pregunta y el ID de la
+pregunta.
+Cargue cada set de datos y nombrelo según cada archivo.
+
+#CARGANDO LIBRERIAS
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+#cargando sets y asignando a dataframes
+
+```{r}
+
+questions <- read.csv("questions.csv")
+answers <- read.csv("answers.csv")
+tags <- read.csv("tags.csv")
+question_tags <- read.csv("question_tags.csv")
+
+#visualizando variables. 
+questions
+answers
+tags
+question_tags
+
+```
+#1. left-joining questions and tags
+
+
+```{r}
+questions_with_tags <- questions %>%  
+  left_join( question_tags, by= c("id" = "question_id") )%>% #relacionando questions y question_tags
+  left_join(tags, by = c("tag_id"= "id"))%>% #relacionando tags
+  replace_na(data.frame(tag_name="only-r")) #reemplazando los NA por only_r
+questions_with_tags
+```
+#2. Comparing Scores across tags
+
+
+```{r}
+questions_with_tags%>% 
+  group_by(tag_name)%>% #agrupando por Tag name
+  summarise( mean_score = mean(score))%>% #calculando el promedio
+  arrange(desc(mean_score)) #ordenando descendente mean_score
+```
+#3.Finding Gaps between questions and answers
+
+```{r}
+questions #explorando tablas antes de comenzar el ejercicio
+answers
+
+questions<-  mutate(questions, creation_date = as.Date(creation_date)) #convirtiendo las columnas de fecha en date, desde Char
+answers <-  mutate(answers, creation_date=as.Date(answers$creation_date)) #convirtiendo las columnas de fecha en date, desde Char
+
+questions %>%
+
+  inner_join(answers,by = c("id" = "question_id"), suffix = c("_question", "_answer"))%>% #agregrando la columna gap, diferencia de fechas
+  mutate(gap = creation_date_answer - creation_date_question)
+```
+
+#4. Joining question and answer counts
+```{r}
+answer_counts<- count(answers, question_id)%>% #contantdo y ordenando 
+  arrange(desc(n))
+answer_counts #variable guardada
+
+question_answer_counts <- questions %>% #guardando variable
+  left_join(answer_counts, by = c("id" = "question_id"))%>% #relacionando questions con answer counts
+    replace_na(data.frame(n=0))%>% #reemplazando NA
+    arrange(desc(n)) #ordenando descendente
+  
+question_answer_counts
+```
+#5. Joining Questions, Answers, and Tags
+```{r}
+#question_tags
+#question_answer_counts
+#tags
+
+question_tags %>% 
+  inner_join(question_answer_counts, by = c("question_id" = "id"))%>%#combinando con question answer counts 
+  inner_join(tags, by = c("tag_id"= "id"))%>% #combinando de nuevo, con tags
+  arrange(desc(n)) #ordenando descendiente para ver temas de mayor interes
+
+
+```
+
